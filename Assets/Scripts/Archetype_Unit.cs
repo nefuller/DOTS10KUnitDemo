@@ -15,7 +15,6 @@ namespace DOTS10KUnitDemo
             ComponentType.ReadWrite<UnitRotation>(),
             ComponentType.ReadWrite<UnitVelocity>(),
             ComponentType.ReadWrite<UnitSpatialHash>(),
-            ComponentType.ReadWrite<UnitSpeed>(),
             ComponentType.ReadWrite<UnitRNG>(),
             ComponentType.ReadWrite<UnitAvoidance>()
         };
@@ -31,7 +30,6 @@ namespace DOTS10KUnitDemo
             entityManager.SetComponentData(unitEntity, new UnitRotation(rotation));
             entityManager.SetComponentData(unitEntity, new UnitVelocity(math.mul(rotation, new float3(0, 0, 1))));
             entityManager.SetComponentData(unitEntity, new UnitSpatialHash(SpatialPartition.GridHash(in position, in GameSettings.WorldSize, GameSettings.SpatialPartitionsPerAxis)));
-            entityManager.SetComponentData(unitEntity, new UnitSpeed(GameSettings.UnitSpeed));
             entityManager.SetComponentData(unitEntity, new UnitRNG(masterRng.NextUInt()));
             entityManager.SetComponentData(unitEntity, new UnitAvoidance(0f));
 
@@ -102,17 +100,6 @@ namespace DOTS10KUnitDemo
         }
 
         public int hash;
-    }
-
-    public struct UnitSpeed : IComponentData
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnitSpeed(float speed)
-        {
-            this.speed = speed;
-        }
-
-        public float speed;
     }
 
     public struct UnitRNG : IComponentData

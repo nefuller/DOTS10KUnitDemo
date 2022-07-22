@@ -16,6 +16,7 @@ namespace DOTS10KUnitDemo
             var worldSize                   = GameSettings.WorldSize;
             var worldBounds                 = GameSettings.WorldBounds;
 
+            var unitSpeed                   = GameSettings.UnitSpeed;
             var unitTurnSpeed               = GameSettings.UnitTurnSpeed;
             var unitSteerMinMax             = GameSettings.UnitSteerMinMax;
 
@@ -23,7 +24,7 @@ namespace DOTS10KUnitDemo
 
             Dependency = Entities.WithName("System_UnitMovement")
                 .WithAll<UnitTag>()
-                .ForEach((ref UnitPosition unitPosition, ref UnitRotation unitRotation, ref UnitVelocity unitVelocity, ref UnitSpatialHash unitSpatialHash, in UnitSpeed unitSpeed, in UnitRNG unitRng, in UnitAvoidance unitAvoidance) =>
+                .ForEach((ref UnitPosition unitPosition, ref UnitRotation unitRotation, ref UnitVelocity unitVelocity, ref UnitSpatialHash unitSpatialHash, in UnitRNG unitRng, in UnitAvoidance unitAvoidance) =>
                 {
                     var forward = float3.zero;
                     if (math.lengthsq(unitAvoidance.avoidance) > 0.001f)
@@ -46,7 +47,7 @@ namespace DOTS10KUnitDemo
                     }
 
                     // Update velocity and position of the unit.
-                    unitVelocity.velocity = forward * unitSpeed.speed;
+                    unitVelocity.velocity = forward * unitSpeed;
                     unitPosition.position += unitVelocity.velocity * deltaTime;
 
                     // Ensure the unit remains inside the spatial partitioning region, regardless of

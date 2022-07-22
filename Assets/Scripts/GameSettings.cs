@@ -25,12 +25,12 @@ namespace DOTS10KUnitDemo
         /// Distance from world boundary at which units begin to receive
         /// boundary separation forces.
         /// </summary>
-        public static readonly float BoundarySeparationRange = 60f;
+        public static float BoundarySeparationRange = 60f;
 
         /// <summary>
         /// Strength of boundary separation force.
         /// </summary>
-        public static readonly float BoundarySeparationStrength = 1f;
+        public static float BoundarySeparationStrength = 1f;
 
         /// <summary>
         /// Unit parameters.

@@ -6,6 +6,9 @@ namespace DOTS10KUnitDemo
 {
     public class EntryPoint_UI : MonoBehaviour
     {
+        public Slider sliderUnitSpeed;
+        public Slider sliderUnitTurnSpeed;
+        public Slider sliderUnitSteerMinMax;
         public Slider sliderAlignmentStrength;
         public Slider sliderCohesionStrength;
         public Slider sliderSeparationStrength;
@@ -13,6 +16,10 @@ namespace DOTS10KUnitDemo
         public Slider sliderCohesionRange;
         public Slider sliderSeparationRange;
 
+
+        public TextMeshProUGUI textUnitSpeed;
+        public TextMeshProUGUI textUnitTurnSpeed;
+        public TextMeshProUGUI textUnitSteerMinMax;
         public TextMeshProUGUI textAlignmentStrength;
         public TextMeshProUGUI textCohesionStrength;
         public TextMeshProUGUI textSeparationStrength;
@@ -22,19 +29,40 @@ namespace DOTS10KUnitDemo
 
         private void OnEnable()
         {
-            sliderAlignmentStrength.value   = GameSettings.AlignmentStrength;
-            sliderCohesionStrength.value    = GameSettings.CohesionStrength;
-            sliderSeparationStrength.value  = GameSettings.SeparationStrength;
-            sliderAlignmentRange.value      = GameSettings.AlignmentRange;
-            sliderCohesionRange.value       = GameSettings.CohesionRange;
-            sliderSeparationRange.value     = GameSettings.SeparationRange;
+            sliderUnitSpeed.value                   = GameSettings.UnitSpeed;
+            sliderUnitTurnSpeed.value               = GameSettings.UnitTurnSpeed;
+            sliderUnitSteerMinMax.value             = GameSettings.UnitSteerMinMax;
+            sliderAlignmentStrength.value           = GameSettings.AlignmentStrength;
+            sliderCohesionStrength.value            = GameSettings.CohesionStrength;
+            sliderSeparationStrength.value          = GameSettings.SeparationStrength;
+            sliderAlignmentRange.value              = GameSettings.AlignmentRange;
+            sliderCohesionRange.value               = GameSettings.CohesionRange;
+            sliderSeparationRange.value             = GameSettings.SeparationRange;
 
-            textAlignmentStrength.text      = $"Alignment Strength ({GameSettings.AlignmentStrength})";
-            textCohesionStrength.text       = $"Cohesion Strength ({GameSettings.CohesionStrength})";
-            textSeparationStrength.text     = $"Separation Strength ({GameSettings.SeparationStrength})";
-            textAlignmentRange.text         = $"Alignment Range ({GameSettings.AlignmentRange})";
-            textCohesionRange.text          = $"Cohesion Range ({GameSettings.CohesionRange})";
-            textSeparationRange.text        = $"Separation Range ({GameSettings.SeparationRange})";
+            textUnitSpeed.text                      = $"Unit Speed ({GameSettings.UnitSpeed})";
+            textUnitTurnSpeed.text                  = $"Unit Turn Speed ({GameSettings.UnitTurnSpeed})";
+            textUnitSteerMinMax.text                = $"Unit Steer MinMax ({GameSettings.UnitSteerMinMax})";
+            textAlignmentStrength.text              = $"Alignment Strength ({GameSettings.AlignmentStrength})";
+            textCohesionStrength.text               = $"Cohesion Strength ({GameSettings.CohesionStrength})";
+            textSeparationStrength.text             = $"Separation Strength ({GameSettings.SeparationStrength})";
+            textAlignmentRange.text                 = $"Alignment Range ({GameSettings.AlignmentRange})";
+            textCohesionRange.text                  = $"Cohesion Range ({GameSettings.CohesionRange})";
+            textSeparationRange.text                = $"Separation Range ({GameSettings.SeparationRange})";
+
+            sliderUnitSpeed.onValueChanged.AddListener(delegate {
+                GameSettings.UnitSpeed = sliderUnitSpeed.value;
+                textUnitSpeed.text = $"Unit Speed ({GameSettings.UnitSpeed})";
+            });
+
+            sliderUnitTurnSpeed.onValueChanged.AddListener(delegate {
+                GameSettings.UnitTurnSpeed = sliderUnitTurnSpeed.value;
+                textUnitTurnSpeed.text = $"Unit Turn Speed ({GameSettings.UnitTurnSpeed})";
+            });
+
+            sliderUnitSteerMinMax.onValueChanged.AddListener(delegate {
+                GameSettings.UnitSteerMinMax = sliderUnitSteerMinMax.value;
+                textUnitSteerMinMax.text = $"Unit Steer MinMax ({GameSettings.UnitSteerMinMax})";
+            });
 
             sliderAlignmentStrength.onValueChanged.AddListener(delegate {
                 GameSettings.AlignmentStrength = sliderAlignmentStrength.value;
@@ -69,6 +97,9 @@ namespace DOTS10KUnitDemo
 
         private void OnDisable()
         {
+            sliderUnitSpeed.onValueChanged.RemoveAllListeners();
+            sliderUnitTurnSpeed.onValueChanged.RemoveAllListeners();
+            sliderUnitSteerMinMax.onValueChanged.RemoveAllListeners();
             sliderAlignmentStrength.onValueChanged.RemoveAllListeners();
             sliderCohesionStrength.onValueChanged.RemoveAllListeners();
             sliderSeparationStrength.onValueChanged.RemoveAllListeners();
