@@ -6,15 +6,12 @@ using Unity.Mathematics;
 
 namespace DOTS10KUnitDemo
 {
-    [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
-    public struct PartitionData
-    {
-        public Entity entity;
-        public float3 position;
-        public float3 velocity;
-        public Team team;
-    }
-
+    /// <summary>
+    /// Calculates an avoidance vector for each unit. The avoidance vector incorporates
+    /// alignment, cohesion and separation forces common to flocking algorithms. It also
+    /// includes a boundary separation force to prevent units from moving outside the
+    /// play area.
+    /// </summary>
     [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
     public struct IJobChunk_UpdateAvoidance : IJobChunk
     {
@@ -31,9 +28,7 @@ namespace DOTS10KUnitDemo
         [ReadOnly] public float alignmentStrength;
         [ReadOnly] public float cohesionStrength;
         [ReadOnly] public float separationStrength;
-
         [ReadOnly] public float2 worldHalfSize;
-
         [ReadOnly] public float2 boundarySeparationHalfSize;
         [ReadOnly] public float boundarySeparationStrength;
 
@@ -67,11 +62,19 @@ namespace DOTS10KUnitDemo
 
             float3 boundarySeparation;
             int boundarySeparationInfluencers;
+            float boundaryDistX;
+            float boundaryDistZ;
 
             float3 finalAlignment;
             float3 finalCohesion;
             float3 finalSeparation;
             float3 finalAvoidance;
+
+            float boundaryDistMax;
+            float boundarySeparationRamp;
+            float3 finalBoundarySeparation;
+
+            UnitAvoidance unitAvoidance;
 
             for (int i = 0; i < chunkCount; ++i)
             {
@@ -85,19 +88,27 @@ namespace DOTS10KUnitDemo
                 unitSeparation              = float3.zero;
                 unitSeparationInfluencers   = 0;
 
+                // Get the adjacent partitions based on the current units own spatial hash.
                 adjacentPartitions          = spatialPartitionAdjacencies[unitSpatialHash];
 
                 for (var adjacentPartitionIndex = 0; adjacentPartitionIndex < 9; ++adjacentPartitionIndex)
                 {
+                    // If the adjacent partition has a value of -1 it is invalid (outside
+                    // the play area) and should be skipped.
                     adjacentHash = adjacentPartitions[adjacentPartitionIndex];
                     if (adjacentHash < 0) continue;
 
+                    // Enumerate on all units in the adjacent partition.
                     enumerator = spatialPartitionData.GetValuesForKey(adjacentPartitions[adjacentPartitionIndex]);
                     while (enumerator.MoveNext())
                     {
                         neighborData            = enumerator.Current;
                         neighborDisplacement    = unitPosition - neighborData.position;
                         neighborDistance        = math.length(neighborDisplacement);
+
+                        // Calculate alignment, cohesion and separation contribution from the
+                        // current unit. Alignment and cohesion are only given by units on
+                        // the same team while separation comes from units on both teams.
 
                         if (neighborDistance > 0f && neighborDistance < alignmentRange && neighborData.team == unitTeam)
                         {
@@ -119,52 +130,49 @@ namespace DOTS10KUnitDemo
                     }
                 }
 
+                // Calculate boundary separation forces.
                 boundarySeparation = float3.zero;
                 boundarySeparationInfluencers = 0;
-                var topDistance = 0f;
-                var bottomDistance = 0f;
+                boundaryDistX = 0f;
+                boundaryDistZ = 0f;
 
                 if (unitPosition.x < -boundarySeparationHalfSize.x)
                 {
                     boundarySeparation += new float3(1, 0, 0);
                     boundarySeparationInfluencers++;
-                    topDistance = math.clamp(math.abs(unitPosition.x) - boundarySeparationHalfSize.x, 0, boundarySeparationHalfSize.x);
+                    boundaryDistX = math.clamp(math.abs(unitPosition.x) - boundarySeparationHalfSize.x, 0, boundarySeparationHalfSize.x);
                 }
                 else if (unitPosition.x > boundarySeparationHalfSize.x)
                 {
                     boundarySeparation += new float3(-1, 0, 0);
                     boundarySeparationInfluencers++;
-                    topDistance = math.clamp(unitPosition.x - boundarySeparationHalfSize.x, 0, boundarySeparationHalfSize.x);
+                    boundaryDistX = math.clamp(unitPosition.x - boundarySeparationHalfSize.x, 0, boundarySeparationHalfSize.x);
                 }
 
                 if (unitPosition.z < -boundarySeparationHalfSize.y)
                 {
                     boundarySeparation += new float3(0, 0, 1);
                     boundarySeparationInfluencers++;
-                    bottomDistance = math.clamp(math.abs(unitPosition.z) - boundarySeparationHalfSize.y, 0, boundarySeparationHalfSize.y);
+                    boundaryDistZ = math.clamp(math.abs(unitPosition.z) - boundarySeparationHalfSize.y, 0, boundarySeparationHalfSize.y);
                 }
                 else if (unitPosition.z > boundarySeparationHalfSize.y)
                 {
                     boundarySeparation += new float3(0, 0, -1);
                     boundarySeparationInfluencers++;
-                    bottomDistance = math.clamp(unitPosition.z - boundarySeparationHalfSize.y, 0, boundarySeparationHalfSize.y);
+                    boundaryDistZ = math.clamp(unitPosition.z - boundarySeparationHalfSize.y, 0, boundarySeparationHalfSize.y);
                 }
 
-             
-                var normalizedDistance = math.remap(0, boundarySeparationHalfSize.x, 0f, 1f, math.max(bottomDistance, topDistance));
-                var inf = math.remap(0f, 1f, 0f, 10000f, 1f * normalizedDistance * normalizedDistance);
+                boundaryDistMax         = math.max(boundaryDistZ, boundaryDistX);
+                boundarySeparationRamp  = math.remap(0f, boundarySeparationHalfSize.x, 0f, 10000f, boundaryDistMax * boundaryDistMax);
 
-                var boundaryAvoidance = boundarySeparationInfluencers == 0 ? float3.zero: math.normalize(boundarySeparation / boundarySeparationInfluencers) * boundarySeparationStrength * inf;
-          
-                finalAlignment      = unitAlignmentInfluencers  == 0 ? float3.zero : math.normalize(unitAlignment / unitAlignmentInfluencers) * alignmentStrength;
-                finalCohesion       = unitCohesionInfluencers   == 0 ? float3.zero : math.normalize(unitCohesion / unitCohesionInfluencers) * cohesionStrength;
-                finalSeparation     = unitSeparationInfluencers == 0 ? float3.zero : math.normalize(unitSeparation / unitSeparationInfluencers) * separationStrength;
+                // Integrate forces into a final avoidance vector.
+                finalAlignment          = unitAlignmentInfluencers  == 0 ? float3.zero : math.normalize(unitAlignment / unitAlignmentInfluencers) * alignmentStrength;
+                finalCohesion           = unitCohesionInfluencers   == 0 ? float3.zero : math.normalize(unitCohesion / unitCohesionInfluencers) * cohesionStrength;
+                finalSeparation         = unitSeparationInfluencers == 0 ? float3.zero : math.normalize(unitSeparation / unitSeparationInfluencers) * separationStrength;
+                finalBoundarySeparation = boundarySeparationInfluencers == 0 ? float3.zero : math.normalize(boundarySeparation / boundarySeparationInfluencers) * boundarySeparationStrength * boundarySeparationRamp;
 
-                finalAvoidance      = math.normalize(finalAlignment + finalCohesion + finalSeparation + boundaryAvoidance);
-
-
-                var unitAvoidance       = unitAvoidanceArray[i];
-                unitAvoidance.avoidance = finalAvoidance;
+                unitAvoidance           = unitAvoidanceArray[i];
+                unitAvoidance.avoidance = math.normalize(finalAlignment + finalCohesion + finalSeparation + finalBoundarySeparation);
                 unitAvoidanceArray[i]   = unitAvoidance;
             }
         }

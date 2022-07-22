@@ -22,43 +22,48 @@ namespace DOTS10KUnitDemo
 
         private void OnEnable()
         {
-            sliderAlignmentStrength.value = GameSettings.AlignmentStrength;
-            sliderCohesionStrength.value = GameSettings.CohesionStrength;
-            sliderSeparationStrength.value = GameSettings.SeparationStrength;
-            sliderAlignmentRange.value = GameSettings.AlignmentRange;
-            sliderCohesionRange.value = GameSettings.CohesionRange;
-            sliderSeparationRange.value = GameSettings.SeparationRange;
+            sliderAlignmentStrength.value   = GameSettings.AlignmentStrength;
+            sliderCohesionStrength.value    = GameSettings.CohesionStrength;
+            sliderSeparationStrength.value  = GameSettings.SeparationStrength;
+            sliderAlignmentRange.value      = GameSettings.AlignmentRange;
+            sliderCohesionRange.value       = GameSettings.CohesionRange;
+            sliderSeparationRange.value     = GameSettings.SeparationRange;
 
-            textAlignmentStrength.text = string.Format("Alignment Strength ({0})", GameSettings.AlignmentStrength);
-            textCohesionStrength.text = string.Format("Cohesion Strength ({0})", GameSettings.CohesionStrength);
-            textSeparationStrength.text = string.Format("Separation Strength ({0})", GameSettings.SeparationStrength);
-            textAlignmentRange.text = string.Format("Alignment Range ({0})", GameSettings.AlignmentRange);
-            textCohesionRange.text = string.Format("Cohesion Range ({0})", GameSettings.CohesionRange);
-            textSeparationRange.text = string.Format("Separation Range ({0})", GameSettings.SeparationRange);
+            textAlignmentStrength.text      = $"Alignment Strength ({GameSettings.AlignmentStrength})";
+            textCohesionStrength.text       = $"Cohesion Strength ({GameSettings.CohesionStrength})";
+            textSeparationStrength.text     = $"Separation Strength ({GameSettings.SeparationStrength})";
+            textAlignmentRange.text         = $"Alignment Range ({GameSettings.AlignmentRange})";
+            textCohesionRange.text          = $"Cohesion Range ({GameSettings.CohesionRange})";
+            textSeparationRange.text        = $"Separation Range ({GameSettings.SeparationRange})";
 
             sliderAlignmentStrength.onValueChanged.AddListener(delegate {
                 GameSettings.AlignmentStrength = sliderAlignmentStrength.value;
-                textAlignmentStrength.text = string.Format("Alignment Strength ({0})", GameSettings.AlignmentStrength);
+                textAlignmentStrength.text = $"Alignment Strength ({GameSettings.AlignmentStrength})";
             });
+
             sliderCohesionStrength.onValueChanged.AddListener(delegate {
                 GameSettings.CohesionStrength = sliderCohesionStrength.value;
-                textCohesionStrength.text = string.Format("Cohesion Strength ({0})", GameSettings.CohesionStrength);
+                textCohesionStrength.text = $"Cohesion Strength ({GameSettings.CohesionStrength})";
             });
+
             sliderSeparationStrength.onValueChanged.AddListener(delegate {
                 GameSettings.SeparationStrength = sliderSeparationStrength.value;
-                textSeparationStrength.text = string.Format("Separation Strength ({0})", GameSettings.SeparationStrength);
+                textSeparationStrength.text = $"Separation Strength ({GameSettings.SeparationStrength})";
             });
+
             sliderAlignmentRange.onValueChanged.AddListener(delegate {
                 GameSettings.AlignmentRange = sliderAlignmentRange.value;
-                textAlignmentRange.text = string.Format("Alignment Range ({0})", GameSettings.AlignmentRange);
+                textAlignmentRange.text = $"Alignment Range ({GameSettings.AlignmentRange})";
             });
+
             sliderCohesionRange.onValueChanged.AddListener(delegate {
                 GameSettings.CohesionRange = sliderCohesionRange.value;
-                textCohesionRange.text = string.Format("Cohesion Range ({0})", GameSettings.CohesionRange);
+                textCohesionRange.text = $"Cohesion Range ({GameSettings.CohesionRange})";
             });
+
             sliderSeparationRange.onValueChanged.AddListener(delegate {
                 GameSettings.SeparationRange = sliderSeparationRange.value;
-                textSeparationRange.text = string.Format("Separation Range ({0})", GameSettings.SeparationRange);
+                textSeparationRange.text = $"Separation Range ({GameSettings.SeparationRange})";
             });
         }
 

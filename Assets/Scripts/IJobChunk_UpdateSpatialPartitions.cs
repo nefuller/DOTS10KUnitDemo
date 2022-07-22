@@ -5,6 +5,9 @@ using Unity.Jobs;
 
 namespace DOTS10KUnitDemo
 {
+    /// <summary>
+    /// Adds units to the spatial partition multi hash map.
+    /// </summary>
     [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
     public struct IJobChunk_UpdateSpatialPartitions : IJobChunk
     {

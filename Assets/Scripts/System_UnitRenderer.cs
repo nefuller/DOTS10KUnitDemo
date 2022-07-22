@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace DOTS10KUnitDemo
 {
+    /// <summary>
+    /// Uploads component data for units to the GPU so they can be rendered via GPU instancing.
+    /// </summary>
     [UpdateAfter(typeof(System_UnitMovement))]
     public sealed partial class System_UnitRenderer : SystemBase
     {
@@ -22,19 +25,21 @@ namespace DOTS10KUnitDemo
 
         EntityQuery updateUnitBufferQuery;
 
-        float3 bounds = new float3(GameSettings.WorldSize.size.x, 1000.0f, GameSettings.WorldSize.size.y);
+        float3 instanceMeshBounds;
 
         public void Reset(Mesh mesh, Material material)
         {
             instanceMesh        = mesh;
             instanceMaterial    = material;
+            instanceMeshBounds  = new float3(GameSettings.WorldSize.size.x, 1000.0f, GameSettings.WorldSize.size.y);
 
+            // All units have their own rng that is seeded with a value from the master rng.
             masterRng           = new Unity.Mathematics.Random(masterSeed);
 
             unitBufferData      = new NativeArray<Compute_Unit>(GameSettings.UnitMax, Allocator.Persistent);
 
             ResetArgBuffer();
-            ResetPositionBuffer();
+            ResetUnitBuffer();
 
             instanceMaterial.SetBuffer("_UnitBuffer", unitBuffer);
         }
@@ -46,10 +51,11 @@ namespace DOTS10KUnitDemo
 
         protected override void OnUpdate()
         {
+            // Update the unit buffer with entity component data, then upload it to the GPU.
             IJobChunk_UpdateUnitBuffer.ScheduleParallel(updateUnitBufferQuery, ref unitBufferData, this.Dependency).Complete();
             unitBuffer.SetData(unitBufferData);
 
-            Graphics.DrawMeshInstancedIndirect(instanceMesh, 0, instanceMaterial, new Bounds(float3.zero, bounds), argBuffer);
+            Graphics.DrawMeshInstancedIndirect(instanceMesh, 0, instanceMaterial, new Bounds(float3.zero, instanceMeshBounds), argBuffer);
         }
 
         protected override void OnDestroy()
@@ -65,6 +71,9 @@ namespace DOTS10KUnitDemo
             unitBufferData.Dispose();
         }
 
+        /// <summary>
+        /// Sets up the args buffer required by Graphics.DrawMeshInstancedIndirect().
+        /// </summary>
         void ResetArgBuffer()
         {
             var args = new NativeArray<uint>(5, Allocator.Temp);
@@ -74,18 +83,24 @@ namespace DOTS10KUnitDemo
             args[3] = instanceMesh.GetBaseVertex(0);
             args[4] = 0;
 
+            // Upload args buffer to GPU.
             argBuffer = new ComputeBuffer(5, UnsafeUtility.SizeOf<uint>(), ComputeBufferType.IndirectArguments);
             argBuffer.SetData(args);
 
             args.Dispose();
         }
 
-        void ResetPositionBuffer()
+        /// <summary>
+        /// Initializes units randomly within the play area.
+        /// </summary>
+        void ResetUnitBuffer()
         {
             for (var i = 0; i < GameSettings.UnitMax; ++i)
             {
-                var team = i < (GameSettings.UnitMax / 2) ? Team.Red : Team.Blue;
+                // Make half of the units red team and half blue team.
+                var team = i % 2 == 0 ? Team.Red : Team.Blue;
 
+                // Initialize the unit's compute buffer representation.
                 unitBufferData[i] = new Compute_Unit()
                 {
                     position = new float3(
@@ -96,9 +111,11 @@ namespace DOTS10KUnitDemo
                     rotation = quaternion.identity.value
                 };
 
+                // Initialize the unit's ECS representation.
                 Archetype_Unit.Create(EntityManager, i, team, unitBufferData[i].position, unitBufferData[i].rotation, new Unity.Mathematics.Random(masterRng.NextUInt()));
             }
 
+            // Upload unit buffer to GPU.
             unitBuffer = new ComputeBuffer(GameSettings.UnitMax, UnsafeUtility.SizeOf<Compute_Unit>());
             unitBuffer.SetData(unitBufferData);
         }

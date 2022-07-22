@@ -2,10 +2,26 @@
 
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace DOTS10KUnitDemo
 {
+    /// <summary>
+    /// Spatial partitioning data for an individual unit.
+    /// </summary>
+    [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
+    public struct PartitionData
+    {
+        public Entity entity;
+        public float3 position;
+        public float3 velocity;
+        public Team team;
+    }
+
+    /// <summary>
+    /// Spatial partitioning data.
+    /// </summary>
     [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
     public struct SpatialPartitionData : IDisposable
     {
@@ -31,6 +47,7 @@ namespace DOTS10KUnitDemo
 
             NativeArray<int2>.Copy(GameSettings.SpatialPartitionDirections, spatialPartitionData.spatialPartitionDirections);
 
+            // Cache all the valid adjacencies of each partition to avoid calculating them per frame.
             IJobParallelForBatch_PrecalculateSpatialPartitionAdjacencies.ScheduleBatch(spatialPartitionData.spatialPartitionDirections, spatialPartitionData.spatialPartitionAdjacencies, default).Complete();
 
             return spatialPartitionData;

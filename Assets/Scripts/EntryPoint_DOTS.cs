@@ -17,7 +17,6 @@ namespace DOTS10KUnitDemo
             systemUnitAvoidance.Enabled = true;
 
             var systemUnitMovement = world.GetOrCreateSystem<System_UnitMovement>();
-            systemUnitMovement.Reset();
             systemUnitMovement.Enabled = true;
 
             var systemUnitRenderer = world.GetOrCreateSystem<System_UnitRenderer>();

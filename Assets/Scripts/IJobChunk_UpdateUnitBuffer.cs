@@ -5,6 +5,9 @@ using Unity.Jobs;
 
 namespace DOTS10KUnitDemo
 {
+    /// <summary>
+    /// Updates compute buffer with unit component data so it can be uploaded to the GPU.
+    /// </summary>
     [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
     public struct IJobChunk_UpdateUnitBuffer : IJobChunk
     {
